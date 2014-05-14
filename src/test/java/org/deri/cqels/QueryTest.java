@@ -6,7 +6,6 @@ import com.hp.hpl.jena.sparql.core.Var;
 import static com.jayway.awaitility.Awaitility.*;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +22,7 @@ import org.junit.Test;
 
 public class QueryTest {
 
-    private static final String STREAM_ID = "http://example.org/simpletest/test";
+    private static final String STREAM_ID_PREFIX = "http://example.org/simpletest/test";
     private static final String CQELS_HOME = "cqels_home";
     private static ExecContext context;
 
@@ -37,7 +36,8 @@ public class QueryTest {
     }
 
     @Test(timeout = 5000)
-    public void simpleQuery() {
+    public void simple() {
+        final String STREAM_ID = STREAM_ID_PREFIX + "_1";
         RDFStream stream = new DefaultRDFStream(context, STREAM_ID);
 
         ContinuousSelect query = context.registerSelect(""
@@ -61,7 +61,8 @@ public class QueryTest {
     }
     
     @Test(timeout = 5000)
-    public void queryWithStaticData() {
+    public void streamURIAsVar() {
+        final String STREAM_ID = STREAM_ID_PREFIX + "_1";
         RDFStream stream = new DefaultRDFStream(context, STREAM_ID);
 
         context.loadDefaultDataset(
@@ -90,12 +91,14 @@ public class QueryTest {
     }
     
     @Test
-    public void queryTwoStreams() throws InterruptedException {
-        RDFStream stream_1 = new DefaultRDFStream(context, STREAM_ID + "_1");
-        RDFStream stream_2 = new DefaultRDFStream(context, STREAM_ID + "_2");
+    public void severalStreamsAsVarsFromDataset() throws InterruptedException {
+        RDFStream stream_1 = new DefaultRDFStream(context, 
+                STREAM_ID_PREFIX + "_1");
+        RDFStream stream_2 = new DefaultRDFStream(context, 
+                STREAM_ID_PREFIX + "_2");
 
         context.loadDefaultDataset(
-                "src/test/resources/org/deri/cqels/dataset_1.ttl");
+                "src/test/resources/org/deri/cqels/dataset.ttl");
 
         ContinuousSelect query = context.registerSelect(""
                 + "SELECT ?x ?y ?z WHERE {"
@@ -117,12 +120,16 @@ public class QueryTest {
         List<Mapping> mappings = await().until(listener, hasSize(2));
         
         List<Node> nodes = toNodeList(mappings.get(0));
-        assertEquals(3, nodes.size());
-        System.out.println(Arrays.toString(nodes.toArray()));
+        assertEquals("http://example.org/resource/1", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("123", nodes.get(2).getLiteralValue());
         
         nodes = toNodeList(mappings.get(1));
-        assertEquals(3, nodes.size());
-        System.out.println(Arrays.toString(nodes.toArray()));
+        assertEquals("http://example.org/resource/2", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("321", nodes.get(2).getLiteralValue());
     }
 
     private List<Node> toNodeList(Mapping mapping) {
