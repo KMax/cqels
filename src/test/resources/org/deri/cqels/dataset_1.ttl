@@ -1,0 +1,4 @@
+@base <http://example.org/> .
+
+</resource/1> </ontology#hasStream> </simpletest/test_1> .
+</resource/2> </ontology#hasStream> </simpletest/test_2> .
