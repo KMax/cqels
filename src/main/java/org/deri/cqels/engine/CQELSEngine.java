@@ -102,12 +102,12 @@ public class CQELSEngine {
        
 	private EnQuad encode(Quad quad) {
 		return new EnQuad(encode(quad.getGraph()), encode(quad.getSubject()), 
-					      encode(quad.getSubject()), encode(quad.getObject()));
+					      encode(quad.getPredicate()), encode(quad.getObject()));
 	}
 	
 	private EnQuad encode(Node graph,Triple triple) {
 		return new EnQuad(encode(graph), encode(triple.getSubject()), 
-				          encode(triple.getSubject()), encode(triple.getObject()));
+				          encode(triple.getPredicate()), encode(triple.getObject()));
 	}
 	
 	public long encode(Node node) { 

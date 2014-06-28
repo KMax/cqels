@@ -9,7 +9,6 @@ import org.deri.cqels.data.EnQuad;
 import org.deri.cqels.data.Mapping;
 import org.deri.cqels.engine.iterator.MappingIterator;
 import org.deri.cqels.lang.cqels.OpStream;
-import org.hamcrest.core.IsInstanceOf;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.sparql.algebra.op.OpTriple;
