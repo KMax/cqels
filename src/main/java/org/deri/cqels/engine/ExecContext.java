@@ -60,7 +60,7 @@ public class ExecContext {
 		//combine cache and disk-based dictionary
 		this.dictionary = new NodeTableNative(IndexBuilder.mem().newIndex(FileSet.mem(), 
 											  		SystemTDB.nodeRecordFactory), 
-											  FileFactory.createObjectFileMem(path));
+											  FileFactory.createObjectFileDisk(path + "/dict"));
 		setEngine(new CQELSEngine(this));
 		createCache(path + "/cache");
 		if (cleanDataset) {
