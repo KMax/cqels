@@ -1,17 +1,5 @@
 package org.deri.cqels.engine;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.deri.cqels.data.Mapping;
-import org.deri.cqels.lang.cqels.ElementStreamGraph;
-import org.deri.cqels.lang.cqels.OpStream;
-import org.openjena.atlas.lib.SetUtils;
-
 import com.espertech.esper.client.EPStatement;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
@@ -30,9 +18,18 @@ import com.hp.hpl.jena.sparql.expr.ExprAggregator;
 import com.hp.hpl.jena.sparql.syntax.Element;
 import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 import com.hp.hpl.jena.sparql.syntax.ElementGroup;
+import com.hp.hpl.jena.sparql.syntax.ElementNamedGraph;
 import com.hp.hpl.jena.sparql.syntax.ElementPathBlock;
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
-import com.hp.hpl.jena.sparql.syntax.Template;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import org.deri.cqels.data.Mapping;
+import org.deri.cqels.lang.cqels.ElementStreamGraph;
+import org.deri.cqels.lang.cqels.OpStream;
+import org.openjena.atlas.lib.SetUtils;
 /** 
  * This class uses heuristic approach to build an execution plan
  * 
@@ -62,6 +59,7 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
     	/* devide operators into three groups */
     	ArrayList<ElementFilter> filters = new ArrayList<ElementFilter>();
     	ArrayList<OpStream> streamOps = new ArrayList<OpStream>();
+        ArrayList<ElementNamedGraph> graphOps = new ArrayList<ElementNamedGraph>();
     	ArrayList<Op> others = new ArrayList<Op>();
     	for(Element el : group.getElements()) {
     		if(el instanceof ElementFilter) {
@@ -72,6 +70,9 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
     			addStreamOp(streamOps, (ElementStreamGraph)el);
     			continue;
     		}
+                if(el instanceof ElementNamedGraph) {
+                    graphOps.add((ElementNamedGraph)el);
+                }
     		others.add(compiler.compile(el));
     	}
     	
@@ -91,10 +92,14 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
     	
     	/* Initialize query execution context, download named graph, create cache?.... */
     	for(String uri : query.getNamedGraphURIs()) {
-    		if(!context.getDataset().containsGraph(Node.createURI(uri))) {
+            //FIXME Ignores the default graphs. Must be fixed!
+            for(ElementNamedGraph graph : graphOps) {
+                Node graphNode = graph.getGraphNameNode();
+    		if (!context.getDataset().containsGraph(graphNode)) {
     			System.out.println(" load" +uri);
-    			context.loadDataset(uri, uri);
+    			context.loadDataset(graphNode.getURI(), uri);
     		}
+            }
     	}
     	    	
     	/* create Leaf cache from the operator over RDF datasets */

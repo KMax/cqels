@@ -1,13 +1,5 @@
 package org.deri.cqels.engine;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import org.deri.cqels.lang.cqels.ParserCQELS;
-
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.sparql.algebra.Algebra;
@@ -27,9 +19,19 @@ import com.hp.hpl.jena.tdb.store.DatasetGraphTDB;
 import com.hp.hpl.jena.tdb.store.bulkloader.BulkLoader;
 import com.hp.hpl.jena.tdb.sys.SystemTDB;
 import com.hp.hpl.jena.tdb.transaction.DatasetGraphTransaction;
-
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Properties;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.deri.cqels.lang.cqels.ParserCQELS;
 /** 
  * This class implements CQELS execution context
  * 
@@ -119,8 +121,44 @@ public class ExecContext {
 	 * @param dataUri 
 	 */
 	public void loadDataset(String graphUri, String dataUri) {
-		BulkLoader.loadNamedGraph(this.dataset, 
-					Node.createURI(graphUri),Arrays.asList(dataUri) , false);
+            //FIXME Virtuoso SPARQL Store specific. Must be fixed!
+            if(!dataUri.endsWith("sparql-graph-crud")) {
+		BulkLoader.loadNamedGraph(dataset, 
+                        Node.createURI(graphUri), 
+                        Arrays.asList(dataUri), false);
+            } else {
+                /**
+                 * Uses SPARQL GRAPH protocol (http://www.w3.org/TR/sparql11-http-rdf-update/) 
+                 * to fetch a dump of given graph.
+                 */
+                HttpClient client = new DefaultHttpClient();
+                HttpGet request = new HttpGet(dataUri + "?graph-uri=" + graphUri);
+                //FIXME Asks for NTRIPLES by default
+                request.setHeader("Accept", "text/ntriples");
+                InputStream stream = null;
+                try {
+                    HttpResponse response = client.execute(request);
+                    int code = response.getStatusLine().getStatusCode();
+                    if(code == 200) {
+                        stream = response.getEntity().getContent();
+                        BulkLoader.loadNamedGraph(
+                                dataset, 
+                                Node.createURI(graphUri), stream, false);
+                    } else if(code == 404) {
+                        System.out.println("SPARQL endpoint ["+dataUri+"] doesn't have ["+graphUri+"] graph!");
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } finally {
+                    try {
+                        if(stream != null) {
+                            stream.close();
+                        }
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
 	}
 	
 	/**
