@@ -68,6 +68,35 @@ public class SimpleQueriesTest {
                 nodes.get(1).getURI());
         assertEquals("123", nodes.get(2).getLiteralValue());
     }
+    
+    @Test(timeout = 5000)
+    public void simpleSelectWithBindConcatStrStr() {
+        final String STREAM_ID = STREAM_ID_PREFIX + "_1";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "SELECT ?x ?y ?xz WHERE {"
+                + "  STREAM <" + STREAM_ID + "> [NOW] {"
+                + "    ?x ?y ?z ."
+                + "  }"
+                + "  BIND(CONCAT(STR(?x), STR(?z)) AS ?xz)"
+                + "}");
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://example.org/resource/1"),
+                Node.createURI("http://example.org/ontology#hasValue"),
+                Node.createLiteral("123")));
+
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = toNodeList(mappings.get(0));
+        System.out.println(Arrays.toString(nodes.toArray()));
+        assertEquals("http://example.org/resource/1", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("http://example.org/resource/1123", nodes.get(2).getLiteralValue());
+    }
 
     @Test(timeout = 5000)
     public void streamURIAsVar() {
@@ -232,7 +261,7 @@ public class SimpleQueriesTest {
                 + "    ?value em:hasQuantityValue ?qvalue .\n"
                 + "  }\n"
                 + "  FILTER(?qvalue > 220)\n"
-                + "  BIND(IRI(CONCAT(?meter, \"/alert/1\")) AS ?alert)\n"
+                + "  BIND(IRI(CONCAT(STR(?meter), '/alerts/', STR(?time))) AS ?alert)\n"
                 + "}");
         ConstructAssertListener listener = new ConstructAssertListener(
                 context, STREAM_ID);
@@ -248,15 +277,15 @@ public class SimpleQueriesTest {
         List<Triple> graph = await().until(listener, hasSize(3));
         System.out.println(Arrays.toString(graph.toArray()));
         assertTrue(graph.contains(new Triple(
-                Node.createURI("http://purl.org/daafse/alert/1"),
+                Node.createURI("http://purl.org/meters/mercury230_14759537/alerts/2014-07-16T05:50:20.890Z"),
                 Node.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
                 Node.createURI("http://purl.org/daafse/alerts#TooHighVoltageValue"))));
         assertTrue(graph.contains(new Triple(
-                Node.createURI("http://purl.org/daafse/alert/1"),
+                Node.createURI("http://purl.org/meters/mercury230_14759537/alerts/2014-07-16T05:50:20.890Z"),
                 Node.createURI("http://www.loa-cnr.it/ontologies/DUL.owl#hasEventDate"),
                 Node.createLiteral("2014-07-16T05:50:20.890Z", XSDDatatype.XSDdateTime))));
         assertTrue(graph.contains(new Triple(
-                Node.createURI("http://purl.org/daafse/alert/1"),
+                Node.createURI("http://purl.org/meters/mercury230_14759537/alerts/2014-07-16T05:50:20.890Z"),
                 Node.createURI("http://www.loa-cnr.it/ontologies/DUL.owl#involvesAgent"),
                 Node.createURI("http://purl.org/meters/mercury230_14759537"))));
     }
