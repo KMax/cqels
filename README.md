@@ -3,6 +3,29 @@ CQELS (Continuous Query Evaluation over Linked Data)
 
 This repository is a fork of https://code.google.com/p/cqels/ repository on Google Code.
 
+Install
+-------
+Add the following repository to your pom.xml:
+```
+<repository>
+    <id>cqels.mvn-repo</id>
+    <url>https://raw.github.com/KMax/cqels/mvn-repo/</url>
+    <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+    </snapshots>
+</repository>
+```
+
+and declare the following dependency:
+```
+<dependency>
+    <groupId>org.deri.cqels</groupId>
+    <artifactId>cqels</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
 Added Features
 ---------
 * Mavenized build,
