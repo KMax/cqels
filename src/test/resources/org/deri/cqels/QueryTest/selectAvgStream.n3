@@ -1,0 +1,6 @@
+<http://example.org/resource/1> <http://example.org/ontology#hasValue> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<http://example.org/resource/1> <http://example.org/ontology#hasValue> "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<http://example.org/resource/1> <http://example.org/ontology#hasValue> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<http://example.org/resource/2> <http://example.org/ontology#hasValue> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<http://example.org/resource/2> <http://example.org/ontology#hasValue> "5"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<http://example.org/resource/2> <http://example.org/ontology#hasValue> "6"^^<http://www.w3.org/2001/XMLSchema#integer> .

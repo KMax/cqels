@@ -5,11 +5,13 @@ import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.sparql.core.Var;
 import static com.jayway.awaitility.Awaitility.*;
 import java.io.File;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,7 +70,7 @@ public class SimpleQueriesTest {
                 nodes.get(1).getURI());
         assertEquals("123", nodes.get(2).getLiteralValue());
     }
-    
+
     @Test(timeout = 5000)
     public void simpleSelectWithBindConcatStrStr() {
         final String STREAM_ID = STREAM_ID_PREFIX + "_1";
@@ -290,6 +292,46 @@ public class SimpleQueriesTest {
                 Node.createURI("http://purl.org/meters/mercury230_14759537"))));
     }
 
+    @Test(timeout = 10000)
+    public void selectAvg() {
+        final String STREAM_ID = STREAM_ID_PREFIX + "_1";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "SELECT (AVG(?z) AS ?avg) WHERE {"
+                + "STREAM <" + STREAM_ID + "> [NOW] {"
+                + "?x ?y ?z"
+                + "}"
+                + "}"
+                + "GROUP BY ?x");
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        List<Triple> triples = readTriples("QueryTest/selectAvgStream.n3");
+
+        for (Triple triple : triples) {
+            stream.stream(triple);
+        }
+
+        List<Mapping> mappings = await().until(listener, hasSize(6));
+        for (Mapping m : mappings) {
+            List<Node> nodes = toNodeList(m);
+        }
+        
+        List<Node> r_0 = toNodeList(mappings.get(0));
+        assertEquals(3, r_0.get(0).getLiteralValue());
+        List<Node> r_1 = toNodeList(mappings.get(1));
+        assertEquals(new BigDecimal(2.5), r_1.get(0).getLiteralValue());
+        List<Node> r_2 = toNodeList(mappings.get(2));
+        assertEquals(2, r_2.get(0).getLiteralValue());
+        List<Node> r_3 = toNodeList(mappings.get(3));
+        assertEquals(6, r_3.get(0).getLiteralValue());
+        List<Node> r_4 = toNodeList(mappings.get(4));
+        assertEquals(new BigDecimal(5.5), r_4.get(0).getLiteralValue());
+        List<Node> r_5 = toNodeList(mappings.get(5));
+        assertEquals(5, r_5.get(0).getLiteralValue());
+    }
+
     private List<Node> toNodeList(Mapping mapping) {
         List<Node> nodes = new ArrayList<Node>();
         for (Iterator<Var> vars = mapping.vars(); vars.hasNext();) {
@@ -301,6 +343,20 @@ public class SimpleQueriesTest {
             }
         }
         return nodes;
+    }
+
+    private List<Triple> readTriples(final String path) {
+        List<Triple> triples = new ArrayList<Triple>();
+
+        Model model = ModelFactory.createDefaultModel();
+        model.read(this.getClass().getResourceAsStream(path), null, "N-TRIPLE");
+
+        List<Statement> statements = model.listStatements().toList();
+        for (Statement s : statements) {
+            triples.add(s.asTriple());
+        }
+
+        return triples;
     }
 
     private class SelectAssertListener
