@@ -9,6 +9,7 @@ import com.hp.hpl.jena.sparql.algebra.op.Op1;
 import com.hp.hpl.jena.sparql.algebra.op.Op2;
 import com.hp.hpl.jena.sparql.algebra.op.OpExt;
 import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
+import com.hp.hpl.jena.sparql.algebra.op.OpLeftJoin;
 import com.hp.hpl.jena.sparql.algebra.op.OpN;
 
 public class FixedPlanner {
@@ -63,6 +64,11 @@ public class FixedPlanner {
 
             @Override
             protected void visitFilter(OpFilter of) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            protected void visitLeftJoin(OpLeftJoin op) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
         });
