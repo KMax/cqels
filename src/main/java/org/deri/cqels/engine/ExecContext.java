@@ -14,7 +14,7 @@ import com.hp.hpl.jena.tdb.base.file.Location;
 import com.hp.hpl.jena.tdb.index.IndexBuilder;
 import com.hp.hpl.jena.tdb.nodetable.NodeTable;
 import com.hp.hpl.jena.tdb.nodetable.NodeTableNative;
-import com.hp.hpl.jena.tdb.solver.OpExecutorTDB;
+import com.hp.hpl.jena.tdb.solver.OpExecutorTDB1;
 import com.hp.hpl.jena.tdb.store.DatasetGraphTDB;
 import com.hp.hpl.jena.tdb.store.bulkloader.BulkLoader;
 import com.hp.hpl.jena.tdb.sys.SystemTDB;
@@ -119,7 +119,7 @@ public class ExecContext {
         this.dataset = ((DatasetGraphTransaction) TDBFactory.createDatasetGraph(location)).getBaseDatasetGraph();
         this.arqExCtx = new ExecutionContext(this.dataset.getContext(),
                 this.dataset.getDefaultGraph(),
-                this.dataset, OpExecutorTDB.OpExecFactoryTDB);
+                this.dataset, OpExecutorTDB1.OpExecFactoryTDB);
     }
 
     /**
