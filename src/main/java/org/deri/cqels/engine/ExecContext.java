@@ -12,11 +12,12 @@ import com.hp.hpl.jena.tdb.base.file.FileFactory;
 import com.hp.hpl.jena.tdb.base.file.FileSet;
 import com.hp.hpl.jena.tdb.base.file.Location;
 import com.hp.hpl.jena.tdb.index.IndexBuilder;
-import com.hp.hpl.jena.tdb.nodetable.NodeTable;
-import com.hp.hpl.jena.tdb.nodetable.NodeTableNative;
+import com.hp.hpl.jena.tdb.index.IndexFactory;
 import com.hp.hpl.jena.tdb.solver.OpExecutorTDB1;
 import com.hp.hpl.jena.tdb.store.DatasetGraphTDB;
 import com.hp.hpl.jena.tdb.store.bulkloader.BulkLoader;
+import com.hp.hpl.jena.tdb.store.nodetable.NodeTable;
+import com.hp.hpl.jena.tdb.store.nodetable.NodeTableNative;
 import com.hp.hpl.jena.tdb.sys.SystemTDB;
 import com.hp.hpl.jena.tdb.transaction.DatasetGraphTransaction;
 import com.sleepycat.je.Environment;
@@ -63,8 +64,8 @@ public class ExecContext {
     public ExecContext(String path, boolean cleanDataset) {
         this.hashMap = new HashMap<String, Object>();
         //combine cache and disk-based dictionary
-        this.dictionary = new NodeTableNative(IndexBuilder.mem().newIndex(FileSet.mem(),
-                SystemTDB.nodeRecordFactory),
+        this.dictionary = new NodeTableNative(IndexFactory.buildIndex(
+                FileSet.mem(), SystemTDB.nodeRecordFactory), 
                 FileFactory.createObjectFileDisk(path + "/dict"));
         setEngine(new CQELSEngine(this));
         createCache(path + "/cache");
