@@ -110,7 +110,6 @@ import com.hp.hpl.jena.sparql.syntax.Element;
 import com.hp.hpl.jena.sparql.syntax.ElementAssign;
 import com.hp.hpl.jena.sparql.syntax.ElementBind;
 import com.hp.hpl.jena.sparql.syntax.ElementExists;
-import com.hp.hpl.jena.sparql.syntax.ElementFetch;
 import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 import com.hp.hpl.jena.sparql.syntax.ElementGroup;
 import com.hp.hpl.jena.sparql.syntax.ElementMinus;
@@ -2533,9 +2532,6 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
     case LET:
       el = Assignment();
       break;
-    case FETCH:
-      el = FetchGraph();
-      break;
     case EXISTS:
       el = ExistsElt();
       break;
@@ -2703,14 +2699,6 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
     expr = Expression();
     jj_consume_token(RPAREN);
       {if (true) return new ElementAssign(v, expr) ;}
-    throw new Error("Missing return statement in function");
-  }
-
-  final public Element FetchGraph() throws ParseException {
-                         Node n ;
-    jj_consume_token(FETCH);
-    n = VarOrIRIref();
-    {if (true) return new ElementFetch(n) ;}
     throw new Error("Missing return statement in function");
   }
 

@@ -7,8 +7,6 @@ import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.sparql.ARQInternalErrorException;
 import com.hp.hpl.jena.sparql.algebra.Op;
-import com.hp.hpl.jena.sparql.algebra.OpExtBuilder;
-import com.hp.hpl.jena.sparql.algebra.OpExtRegistry;
 import com.hp.hpl.jena.sparql.algebra.Table;
 import com.hp.hpl.jena.sparql.algebra.TableFactory;
 import com.hp.hpl.jena.sparql.algebra.Transform;
@@ -21,7 +19,6 @@ import com.hp.hpl.jena.sparql.algebra.op.OpFilter;
 import com.hp.hpl.jena.sparql.algebra.op.OpGraph;
 import com.hp.hpl.jena.sparql.algebra.op.OpGroup;
 import com.hp.hpl.jena.sparql.algebra.op.OpJoin;
-import com.hp.hpl.jena.sparql.algebra.op.OpLabel;
 import com.hp.hpl.jena.sparql.algebra.op.OpLeftJoin;
 import com.hp.hpl.jena.sparql.algebra.op.OpMinus;
 import com.hp.hpl.jena.sparql.algebra.op.OpNull;
@@ -44,13 +41,10 @@ import com.hp.hpl.jena.sparql.expr.Expr;
 import com.hp.hpl.jena.sparql.expr.ExprLib;
 import com.hp.hpl.jena.sparql.expr.ExprList;
 import com.hp.hpl.jena.sparql.path.PathLib;
-import com.hp.hpl.jena.sparql.sse.Item;
-import com.hp.hpl.jena.sparql.sse.ItemList;
 import com.hp.hpl.jena.sparql.syntax.Element;
 import com.hp.hpl.jena.sparql.syntax.ElementAssign;
 import com.hp.hpl.jena.sparql.syntax.ElementBind;
 import com.hp.hpl.jena.sparql.syntax.ElementExists;
-import com.hp.hpl.jena.sparql.syntax.ElementFetch;
 import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 import com.hp.hpl.jena.sparql.syntax.ElementGroup;
 import com.hp.hpl.jena.sparql.syntax.ElementMinus;
@@ -320,9 +314,6 @@ public class LogicCompiler {
       
         if (elt instanceof ElementService)
             return compileElementService((ElementService)elt); 
-        
-        if (elt instanceof ElementFetch)
-            return compileElementFetch((ElementFetch)elt); 
 
         // This is only here for queries built programmatically
         // (triple patterns not in a group) 
@@ -556,7 +547,7 @@ public class LogicCompiler {
         
         // All other elements: compile the element and then join on to the current group expression.
         if (elt instanceof ElementGroup || elt instanceof ElementNamedGraph ||
-            elt instanceof ElementService || elt instanceof ElementFetch ||
+            elt instanceof ElementService ||
             elt instanceof ElementUnion) {
             Op op = compileElement(elt);
             return join(current, op);
@@ -635,18 +626,4 @@ public class LogicCompiler {
         return new OpService(serviceNode, sub, eltService, eltService.getSilent());
     }
     
-    private Op compileElementFetch(ElementFetch elt) {
-        Node serviceNode = elt.getFetchNode();
-        
-        // Probe to see if enabled.
-        OpExtBuilder builder = OpExtRegistry.builder("fetch");
-        if ( builder == null ) {
-            Log.warn(this, "Attempt to use OpFetch - need to enable first with a call to OpFetch.enable()"); 
-            return OpLabel.create("fetch/"+serviceNode, OpTable.unit());
-        }
-        Item item = Item.createNode(elt.getFetchNode());
-        ItemList args = new ItemList();
-        args.add(item);
-        return builder.make(args);
-    }
 }

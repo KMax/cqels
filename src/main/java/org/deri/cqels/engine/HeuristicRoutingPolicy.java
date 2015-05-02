@@ -89,7 +89,7 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
         for (int i = 0; i < others.size(); i++) {
             Op op = others.get(i);
             for (ElementFilter filter : filters) {
-                if (OpVars.allVars(op).containsAll(filter.getExpr().getVarsMentioned())) {
+                if (OpVars.mentionedVars(op).containsAll(filter.getExpr().getVarsMentioned())) {
                     op = OpFilter.filter(filter.getExpr(), op);
                 }
             }
@@ -140,7 +140,7 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
 
             Op curOp = router.getOp();
             OpRouter curRouter = router;
-            Set<Var> curVars = (Set<Var>) OpVars.allVars(curOp);
+            Set<Var> curVars = (Set<Var>) OpVars.mentionedVars(curOp);
             int count = 1;
             int curCount = 1;
 
@@ -169,13 +169,13 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
 
                 for (int j = 0; j < caches.size() && (!skip); j++) {
                     if ((!cFlag.get(j)) && SetUtils.intersectionP(curVars,
-                            (Set<Var>) OpVars.allVars(caches.get(j).getOp()))) {
+                            (Set<Var>) OpVars.mentionedVars(caches.get(j).getOp()))) {
                         curOp = OpJoin.create(curOp, caches.get(j).getOp());
                         OpRouter newRouter = new JoinRouter(context, (OpJoin) curOp,
                                 curRouter, caches.get(j));
                         curRouter = addRouter(curRouter, newRouter);
                         cFlag.set(j);
-                        curVars.addAll(OpVars.allVars(caches.get(j).getOp()));
+                        curVars.addAll(OpVars.mentionedVars(caches.get(j).getOp()));
                         count++;
                         skip = true;
                     }
@@ -183,13 +183,13 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
 
                 for (int j = 0; j < windows.size() && (!skip); j++) {
                     if ((!wFlag.get(j)) && SetUtils.intersectionP(curVars,
-                            (Set<Var>) OpVars.allVars(windows.get(j).getOp()))) {
+                            (Set<Var>) OpVars.mentionedVars(windows.get(j).getOp()))) {
                         curOp = OpJoin.create(curOp, windows.get(j).getOp());
                         OpRouter newRouter = new JoinRouter(context, (OpJoin) curOp,
                                 curRouter, windows.get(j));
                         curRouter = addRouter(curRouter, newRouter);
                         wFlag.set(j);
-                        curVars.addAll(OpVars.allVars(windows.get(j).getOp()));
+                        curVars.addAll(OpVars.mentionedVars(windows.get(j).getOp()));
                         count++;
                         skip = true;
                     }
@@ -303,13 +303,13 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
         }
 
         for (OpStream op : streamOps) {
-            OpVars.allVars(op, upperVars);
+            OpVars.mentionedVars(op, upperVars);
             //System.out.println(upperVars);
         }
 
         for (int i = 0; i < others.size(); i++) {
             Op op = others.get(i);
-            Set<Var> opVars = (Set<Var>) OpVars.allVars(op);
+            Set<Var> opVars = (Set<Var>) OpVars.mentionedVars(op);
             ArrayList<Var> projectedVars = new ArrayList<Var>();
             for (Var var : opVars) {
                 if (upperVars.contains(var)) {
