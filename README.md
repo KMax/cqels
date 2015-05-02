@@ -2,6 +2,8 @@
 
 This repository is a fork of https://code.google.com/p/cqels/ repository on Google Code.
 
+_DISCLAMER: I'm not a developer of the original CQELS._
+
 ## Install
 
 Add the following repository to your pom.xml:
