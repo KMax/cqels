@@ -1,107 +1,98 @@
 package org.deri.cqels.lang.cqels;
 
-import java.io.Reader ;
-import java.io.StringReader ;
-
-import com.hp.hpl.jena.query.Query ;
-import com.hp.hpl.jena.query.QueryException ;
-import com.hp.hpl.jena.query.QueryParseException ;
-import com.hp.hpl.jena.query.Syntax ;
-import com.hp.hpl.jena.shared.JenaException ;
-import com.hp.hpl.jena.sparql.lang.Parser;
+import java.io.Reader;
+import java.io.StringReader;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryException;
+import com.hp.hpl.jena.query.QueryParseException;
+import com.hp.hpl.jena.query.Syntax;
+import com.hp.hpl.jena.shared.JenaException;
+import com.hp.hpl.jena.sparql.lang.SPARQLParser;
 import com.hp.hpl.jena.sparql.lang.ParserSPARQL11;
-import com.hp.hpl.jena.sparql.syntax.Element ;
-import com.hp.hpl.jena.sparql.syntax.Template ;
-import org.openjena.atlas.logging.Log ;
+import com.hp.hpl.jena.sparql.syntax.Element;
+import com.hp.hpl.jena.sparql.syntax.Template;
+import org.apache.jena.atlas.logging.Log;
 
+public class ParserCQELS extends SPARQLParser {
 
-public class ParserCQELS extends Parser
-{
-	public static final Syntax syntaxCQELS_01    = Syntax.make("http://deri.org/2011/05/query/CQELS_01") ;
-	  
-	private interface Action { void exec(CQELSParser parser) throws Exception ; }
-    
+    public static final Syntax syntaxCQELS_01 = Syntax.make("http://deri.org/2011/05/query/CQELS_01");
+
+    private interface Action {
+
+        void exec(CQELSParser parser) throws Exception;
+    }
+
     @Override
-    protected Query parse$(final Query query, String queryString)
-    {
-        query.setSyntax(syntaxCQELS_01) ;
+    protected Query parse$(final Query query, String queryString) {
+        query.setSyntax(syntaxCQELS_01);
 
         Action action = new Action() {
-            public void exec(CQELSParser parser) throws Exception
-            {
-                parser.QueryUnit() ;
+            @Override
+            public void exec(CQELSParser parser) throws Exception {
+                parser.QueryUnit();
             }
-        } ;
+        };
 
-        perform(query, queryString, action) ;
-        validateParsedQuery(query) ;
-        return query ;
+        perform(query, queryString, action);
+        validateParsedQuery(query);
+        return query;
     }
-    
-    public static Element parseElement(String string)
-    {
-        final Query query = new Query () ;
+
+    public static Element parseElement(String string) {
+        final Query query = new Query();
         Action action = new Action() {
-            public void exec(CQELSParser parser) throws Exception
-            {
-                Element el = parser.GroupGraphPattern() ;
-                query.setQueryPattern(el) ;
+            @Override
+            public void exec(CQELSParser parser) throws Exception {
+                Element el = parser.GroupGraphPattern();
+                query.setQueryPattern(el);
             }
-        } ;
-        perform(query, string, action) ;
-        return query.getQueryPattern() ;
+        };
+        perform(query, string, action);
+        return query.getQueryPattern();
     }
-    
-    public static Template parseTemplate(String string)
-    {
-        final Query query = new Query () ;
+
+    public static Template parseTemplate(String string) {
+        final Query query = new Query();
         Action action = new Action() {
-            public void exec(CQELSParser parser) throws Exception
-            {
-                Template t = parser.ConstructTemplate() ;
-                query.setConstructTemplate(t) ;
+            @Override
+            public void exec(CQELSParser parser) throws Exception {
+                Template t = parser.ConstructTemplate();
+                query.setConstructTemplate(t);
             }
-        } ;
-        perform(query, string, action) ;
-        return query.getConstructTemplate() ;
+        };
+        perform(query, string, action);
+        return query.getConstructTemplate();
     }
-    
- 
+
     // All throwable handling.
-    private static void perform(Query query, String string, Action action)
-    {
-        Reader in = new StringReader(string) ;
-        CQELSParser parser = new CQELSParser(in) ;
+    private static void perform(Query query, String string, Action action) {
+        Reader in = new StringReader(string);
+        CQELSParser parser = new CQELSParser(in);
 
         try {
-            query.setStrict(true) ;
-            parser.setQuery(query) ;
-            action.exec(parser) ;
-        }
-        catch (com.hp.hpl.jena.sparql.lang.arq.ParseException ex)
-        { 
+            query.setStrict(true);
+            parser.setQuery(query);
+            action.exec(parser);
+        } catch (com.hp.hpl.jena.sparql.lang.arq.ParseException ex) {
             throw new QueryParseException(ex.getMessage(),
-                                          ex.currentToken.beginLine,
-                                          ex.currentToken.beginColumn
-                                          ) ; }
-        catch (com.hp.hpl.jena.sparql.lang.arq.TokenMgrError tErr)
-        {
+                    ex.currentToken.beginLine,
+                    ex.currentToken.beginColumn
+            );
+        } catch (com.hp.hpl.jena.sparql.lang.arq.TokenMgrError tErr) {
             // Last valid token : not the same as token error message - but this should not happen
-            int col = parser.token.endColumn ;
-            int line = parser.token.endLine ;
-            throw new QueryParseException(tErr.getMessage(), line, col) ; }
-        
-        catch (QueryException ex) { throw ex ; }
-        catch (JenaException ex)  { throw new QueryException(ex.getMessage(), ex) ; }
-        catch (Error err)
-        {
+            int col = parser.token.endColumn;
+            int line = parser.token.endLine;
+            throw new QueryParseException(tErr.getMessage(), line, col);
+        } catch (QueryException ex) {
+            throw ex;
+        } catch (JenaException ex) {
+            throw new QueryException(ex.getMessage(), ex);
+        } catch (Error err) {
             // The token stream can throw errors.
-            throw new QueryParseException(err.getMessage(), err, -1, -1) ;
-        }
-        catch (Throwable th)
-        {
-            Log.warn(ParserSPARQL11.class, "Unexpected throwable: ",th) ;
-            throw new QueryException(th.getMessage(), th) ;
+            throw new QueryParseException(err.getMessage(), err, -1, -1);
+        } catch (Throwable th) {
+            Log.warn(ParserSPARQL11.class, "Unexpected throwable: ", th);
+            throw new QueryException(th.getMessage(), th);
         }
     }
 }

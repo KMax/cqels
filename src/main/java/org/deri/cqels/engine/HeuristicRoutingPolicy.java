@@ -28,10 +28,10 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import org.apache.jena.atlas.lib.SetUtils;
 import org.deri.cqels.data.Mapping;
 import org.deri.cqels.lang.cqels.ElementStreamGraph;
 import org.deri.cqels.lang.cqels.OpStream;
-import org.openjena.atlas.lib.SetUtils;
 
 /**
  * This class uses heuristic approach to build an execution plan

@@ -5,16 +5,131 @@
  * All rights reserved.
  */
 package org.deri.cqels.lang.cqels;
-import org.deri.cqels.engine.*;
-import com.hp.hpl.jena.graph.* ;
-import com.hp.hpl.jena.query.* ;
+
+import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.query.Query ;
 import com.hp.hpl.jena.sparql.core.Var ;
-import com.hp.hpl.jena.sparql.syntax.* ;
-import com.hp.hpl.jena.sparql.expr.* ;
-import com.hp.hpl.jena.sparql.path.* ;
-import com.hp.hpl.jena.sparql.expr.aggregate.* ;
-import com.hp.hpl.jena.update.* ;
-import com.hp.hpl.jena.sparql.modify.request.* ;
+import com.hp.hpl.jena.sparql.expr.E_Add;
+import com.hp.hpl.jena.sparql.expr.E_BNode;
+import com.hp.hpl.jena.sparql.expr.E_Bound;
+import com.hp.hpl.jena.sparql.expr.E_Call;
+import com.hp.hpl.jena.sparql.expr.E_Coalesce;
+import com.hp.hpl.jena.sparql.expr.E_Conditional;
+import com.hp.hpl.jena.sparql.expr.E_Datatype;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeDay;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeHours;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeMinutes;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeMonth;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeSeconds;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeTZ;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeTimezone;
+import com.hp.hpl.jena.sparql.expr.E_DateTimeYear;
+import com.hp.hpl.jena.sparql.expr.E_Divide;
+import com.hp.hpl.jena.sparql.expr.E_Equals;
+import com.hp.hpl.jena.sparql.expr.E_Function;
+import com.hp.hpl.jena.sparql.expr.E_FunctionDynamic;
+import com.hp.hpl.jena.sparql.expr.E_GreaterThan;
+import com.hp.hpl.jena.sparql.expr.E_GreaterThanOrEqual;
+import com.hp.hpl.jena.sparql.expr.E_IRI;
+import com.hp.hpl.jena.sparql.expr.E_IsBlank;
+import com.hp.hpl.jena.sparql.expr.E_IsIRI;
+import com.hp.hpl.jena.sparql.expr.E_IsLiteral;
+import com.hp.hpl.jena.sparql.expr.E_IsNumeric;
+import com.hp.hpl.jena.sparql.expr.E_IsURI;
+import com.hp.hpl.jena.sparql.expr.E_Lang;
+import com.hp.hpl.jena.sparql.expr.E_LangMatches;
+import com.hp.hpl.jena.sparql.expr.E_LessThan;
+import com.hp.hpl.jena.sparql.expr.E_LessThanOrEqual;
+import com.hp.hpl.jena.sparql.expr.E_LogicalAnd;
+import com.hp.hpl.jena.sparql.expr.E_LogicalNot;
+import com.hp.hpl.jena.sparql.expr.E_LogicalOr;
+import com.hp.hpl.jena.sparql.expr.E_MD5;
+import com.hp.hpl.jena.sparql.expr.E_Multiply;
+import com.hp.hpl.jena.sparql.expr.E_NotEquals;
+import com.hp.hpl.jena.sparql.expr.E_NotOneOf;
+import com.hp.hpl.jena.sparql.expr.E_Now;
+import com.hp.hpl.jena.sparql.expr.E_NumAbs;
+import com.hp.hpl.jena.sparql.expr.E_NumCeiling;
+import com.hp.hpl.jena.sparql.expr.E_NumFloor;
+import com.hp.hpl.jena.sparql.expr.E_NumRound;
+import com.hp.hpl.jena.sparql.expr.E_OneOf;
+import com.hp.hpl.jena.sparql.expr.E_Random;
+import com.hp.hpl.jena.sparql.expr.E_Regex;
+import com.hp.hpl.jena.sparql.expr.E_SHA1;
+import com.hp.hpl.jena.sparql.expr.E_SHA224;
+import com.hp.hpl.jena.sparql.expr.E_SHA256;
+import com.hp.hpl.jena.sparql.expr.E_SHA384;
+import com.hp.hpl.jena.sparql.expr.E_SHA512;
+import com.hp.hpl.jena.sparql.expr.E_SameTerm;
+import com.hp.hpl.jena.sparql.expr.E_Str;
+import com.hp.hpl.jena.sparql.expr.E_StrConcat;
+import com.hp.hpl.jena.sparql.expr.E_StrContains;
+import com.hp.hpl.jena.sparql.expr.E_StrDatatype;
+import com.hp.hpl.jena.sparql.expr.E_StrEncodeForURI;
+import com.hp.hpl.jena.sparql.expr.E_StrEndsWith;
+import com.hp.hpl.jena.sparql.expr.E_StrLang;
+import com.hp.hpl.jena.sparql.expr.E_StrLength;
+import com.hp.hpl.jena.sparql.expr.E_StrLowerCase;
+import com.hp.hpl.jena.sparql.expr.E_StrStartsWith;
+import com.hp.hpl.jena.sparql.expr.E_StrSubstring;
+import com.hp.hpl.jena.sparql.expr.E_StrUpperCase;
+import com.hp.hpl.jena.sparql.expr.E_Subtract;
+import com.hp.hpl.jena.sparql.expr.E_URI;
+import com.hp.hpl.jena.sparql.expr.E_UnaryMinus;
+import com.hp.hpl.jena.sparql.expr.E_UnaryPlus;
+import com.hp.hpl.jena.sparql.expr.Expr;
+import com.hp.hpl.jena.sparql.expr.ExprList;
+import com.hp.hpl.jena.sparql.expr.ExprVar;
+import com.hp.hpl.jena.sparql.expr.NodeValue;
+import com.hp.hpl.jena.sparql.expr.aggregate.Aggregator;
+import com.hp.hpl.jena.sparql.expr.aggregate.AggregatorFactory;
+import com.hp.hpl.jena.sparql.modify.request.QuadAcc;
+import com.hp.hpl.jena.sparql.modify.request.QuadAccSink;
+import com.hp.hpl.jena.sparql.modify.request.QuadDataAcc;
+import com.hp.hpl.jena.sparql.modify.request.Target;
+import com.hp.hpl.jena.sparql.modify.request.UpdateAdd;
+import com.hp.hpl.jena.sparql.modify.request.UpdateClear;
+import com.hp.hpl.jena.sparql.modify.request.UpdateCopy;
+import com.hp.hpl.jena.sparql.modify.request.UpdateCreate;
+import com.hp.hpl.jena.sparql.modify.request.UpdateDataDelete;
+import com.hp.hpl.jena.sparql.modify.request.UpdateDataInsert;
+import com.hp.hpl.jena.sparql.modify.request.UpdateDeleteWhere;
+import com.hp.hpl.jena.sparql.modify.request.UpdateDrop;
+import com.hp.hpl.jena.sparql.modify.request.UpdateLoad;
+import com.hp.hpl.jena.sparql.modify.request.UpdateModify;
+import com.hp.hpl.jena.sparql.modify.request.UpdateMove;
+import com.hp.hpl.jena.sparql.modify.request.UpdateWithUsing;
+import com.hp.hpl.jena.sparql.path.P_Inverse;
+import com.hp.hpl.jena.sparql.path.P_Link;
+import com.hp.hpl.jena.sparql.path.P_NegPropSet;
+import com.hp.hpl.jena.sparql.path.P_Path0;
+import com.hp.hpl.jena.sparql.path.P_ReverseLink;
+import com.hp.hpl.jena.sparql.path.PathFactory;
+import com.hp.hpl.jena.sparql.path.Path;
+import com.hp.hpl.jena.sparql.syntax.Element;
+import com.hp.hpl.jena.sparql.syntax.ElementAssign;
+import com.hp.hpl.jena.sparql.syntax.ElementBind;
+import com.hp.hpl.jena.sparql.syntax.ElementExists;
+import com.hp.hpl.jena.sparql.syntax.ElementFetch;
+import com.hp.hpl.jena.sparql.syntax.ElementFilter;
+import com.hp.hpl.jena.sparql.syntax.ElementGroup;
+import com.hp.hpl.jena.sparql.syntax.ElementMinus;
+import com.hp.hpl.jena.sparql.syntax.ElementNamedGraph;
+import com.hp.hpl.jena.sparql.syntax.ElementNotExists;
+import com.hp.hpl.jena.sparql.syntax.ElementOptional;
+import com.hp.hpl.jena.sparql.syntax.ElementPathBlock;
+import com.hp.hpl.jena.sparql.syntax.ElementService;
+import com.hp.hpl.jena.sparql.syntax.ElementSubQuery;
+import com.hp.hpl.jena.sparql.syntax.ElementUnion;
+import com.hp.hpl.jena.sparql.syntax.Template;
+import com.hp.hpl.jena.sparql.syntax.TripleCollector;
+import com.hp.hpl.jena.sparql.syntax.TripleCollectorBGP;
+import com.hp.hpl.jena.update.Update;
+import org.deri.cqels.engine.All;
+import org.deri.cqels.engine.Now;
+import org.deri.cqels.engine.RangeWindow;
+import org.deri.cqels.engine.TripleWindow;
+import org.deri.cqels.engine.Window;
 public class CQELSParser extends CQELSParserBase implements CQELSParserConstants {
     boolean allowAggregatesInExpressions = false ;
 
@@ -1859,7 +1974,7 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
      up.setHasInsertClause(true) ;
   }
 
-  final public void OptionalIntoTarget(QuadAcc qp) throws ParseException {
+  final public void OptionalIntoTarget(QuadAccSink qp) throws ParseException {
                                         String iri ;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case IRIref:
@@ -1883,7 +1998,7 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
     }
   }
 
-  final public void OptionalFromTarget(QuadAcc qp) throws ParseException {
+  final public void OptionalFromTarget(QuadAccSink qp) throws ParseException {
                                         String iri ;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case IRIref:
@@ -2005,7 +2120,7 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
     throw new Error("Missing return statement in function");
   }
 
-  final public void QuadPattern(QuadAcc acc) throws ParseException {
+  final public void QuadPattern(QuadAccSink acc) throws ParseException {
     jj_consume_token(LBRACE);
     Quads(acc);
     jj_consume_token(RBRACE);
@@ -2018,7 +2133,7 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
     jj_consume_token(RBRACE);
   }
 
-  final public void Quads(QuadAcc acc) throws ParseException {
+  final public void Quads(QuadAccSink acc) throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case IRIref:
     case PNAME_NS:
@@ -2105,7 +2220,7 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
     }
   }
 
-  final public void QuadsNotTriples(QuadAcc acc) throws ParseException {
+  final public void QuadsNotTriples(QuadAccSink acc) throws ParseException {
                                      Node gn ; Node prev = acc.getGraph() ;
     jj_consume_token(GRAPH);
     gn = VarOrIRIref();
@@ -3010,9 +3125,8 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
 
   final public void Object(Node s, Node p, Path path, TripleCollector acc) throws ParseException {
                                                                Node o ;
-      int mark = acc.mark() ;
     o = GraphNode(acc);
-    insert(acc, mark, s, p, path, o) ;
+    insert(acc, s, p, path, o) ;
   }
 
   final public Node Verb() throws ParseException {
@@ -3549,9 +3663,8 @@ public class CQELSParser extends CQELSParserBase implements CQELSParserConstants
          listHead = cell ;
       if ( lastCell != null )
         insert(acc, lastCell, nRDFrest, cell) ;
-      mark = acc.mark() ;
       n = GraphNode(acc);
-      insert(acc, mark, cell, nRDFfirst, n) ;
+      insert(acc, cell, nRDFfirst, n) ;
       lastCell = cell ;
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case IRIref:

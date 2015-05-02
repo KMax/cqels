@@ -5,8 +5,8 @@ import com.hp.hpl.jena.sparql.core.VarExprList;
 import com.hp.hpl.jena.sparql.expr.NodeValue;
 import com.hp.hpl.jena.sparql.function.FunctionEnvBase;
 import java.util.Iterator;
+import org.apache.jena.atlas.iterator.IteratorConcat;
 import org.deri.cqels.engine.ExecContext;
-import org.openjena.atlas.iterator.IteratorConcat;
 
 public class ExtendMapping extends MappingBase {
 
@@ -17,7 +17,6 @@ public class ExtendMapping extends MappingBase {
         super(context);
         this.mapping = mapping;
         this.exprs = exprs;
-        //System.out.println("extend"+exprs);
     }
 
     public ExtendMapping(ExecContext context, Mapping mapping, Mapping parent) {
@@ -42,7 +41,8 @@ public class ExtendMapping extends MappingBase {
     @Override
     public Iterator<Var> vars() {
         if (hasParent()) {
-            return IteratorConcat.concat(IteratorConcat.concat(mapping.vars(), exprs.getVars().iterator()), super.vars());
+            return IteratorConcat.concat(
+                    IteratorConcat.concat(mapping.vars(), exprs.getVars().iterator()), super.vars());
         }
         return IteratorConcat.concat(mapping.vars(), exprs.getVars().iterator());
     }
@@ -85,7 +85,6 @@ public class ExtendMapping extends MappingBase {
 
     @Override
     public int size() {
-        // TODO Auto-generated method stub
         return mapping.size() + super.size() + exprs.size();
     }
 }

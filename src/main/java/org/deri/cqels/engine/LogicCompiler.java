@@ -3,11 +3,6 @@ package org.deri.cqels.engine;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import org.deri.cqels.lang.cqels.ElementStreamGraph;
-import org.deri.cqels.lang.cqels.OpStream;
-import org.openjena.atlas.logging.Log;
-
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.sparql.ARQInternalErrorException;
@@ -68,6 +63,7 @@ import com.hp.hpl.jena.sparql.syntax.ElementSubQuery;
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
 import com.hp.hpl.jena.sparql.syntax.ElementUnion;
 import com.hp.hpl.jena.sparql.util.Utils;
+import org.apache.jena.atlas.logging.Log;
 /**
  * This class implements a compiler parsing the query in logical level
  * @author		Danh Le Phuoc
@@ -86,8 +82,8 @@ public class LogicCompiler {
 	 * Fixed filter position means leave exactly where it is syntactically (illegal SPARQL) and 
 	 * helpful only to write exactly what you mean and test the full query compiler. 
 	 */
-    private boolean fixedFilterPosition = false;
-    private static Transform simplify = new TransformSimplify();
+    private final boolean fixedFilterPosition = false;
+    private static final Transform simplify = new TransformSimplify();
     
     static final private boolean applySimplification = true;              // Allows raw algebra to be generated (testing) 
     static final private boolean simplifyTooEarlyInAlgebraGeneration = false;   // False is the correct setting.
@@ -126,7 +122,7 @@ public class LogicCompiler {
         if (! projectVars.isEmpty() && ! query.isQueryResultStar()) {
             // Don't project for QueryResultStar so initial bindings show
             // through in SELECT *
-            if (projectVars.size() == 0 && query.isSelectType()) {
+            if (projectVars.isEmpty() && query.isSelectType()) {
                 Log.warn(this,"No project variables") ;
             }
             // Separate assignments and variable projection.
@@ -227,7 +223,7 @@ public class LogicCompiler {
         if (! projectVars.isEmpty() && ! query.isQueryResultStar()) {
             // Don't project for QueryResultStar so initial bindings show
             // through in SELECT *
-            if (projectVars.size() == 0 && query.isSelectType())
+            if (projectVars.isEmpty() && query.isSelectType())
                 Log.warn(this,"No project variables");
             // Separate assignments and variable projection.
             for (Var v : query.getProject().getVars()) {
@@ -586,7 +582,7 @@ public class LogicCompiler {
 
     protected Op compilePathBlock(PathBlock pathBlock) {
         // Empty path block : the parser does not generate this case.
-        if ( pathBlock.size() == 0 ) {
+        if ( pathBlock.isEmpty() ) {
             return OpTable.unit();
         }
         // Always turns the most basic paths to triples.
