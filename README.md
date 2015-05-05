@@ -23,7 +23,7 @@ and declare the following dependency:
 <dependency>
     <groupId>org.deri.cqels</groupId>
     <artifactId>cqels</artifactId>
-    <version>1.1.0</version>
+    <version>...</version>
 </dependency>
 ```
 
