@@ -20,6 +20,7 @@ import com.hp.hpl.jena.query.Query;
 public interface RoutingPolicy 
 {
 	public OpRouter next(OpRouter curRouter, Mapping mapping);
+        public void removeRouter(OpRouter from, OpRouter to);
 	public ContinuousSelect registerSelectQuery(Query query);
 	public ContinuousConstruct registerConstructQuery(Query query);
 }

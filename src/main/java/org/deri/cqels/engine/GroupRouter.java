@@ -14,7 +14,7 @@ import com.hp.hpl.jena.sparql.expr.ExprAggregator;
 /**
  * This class implements the router with group-by operator
  *
- * @author	Danh Le Phuoc
+ * @author Danh Le Phuoc
  * @author Chan Le Van
  * @organization DERI Galway, NUIG, Ireland www.deri.ie
  * @email danh.lephuoc@deri.org
@@ -27,25 +27,18 @@ public class GroupRouter extends OpRouter1 {
     private final List<ExprAggregator> aggregators;
 
     public GroupRouter(ExecContext context, OpGroup op, OpRouter sub) {
-
         super(context, op, sub);
-        //System.out.println("group "+op);
-        groupVars = ((OpGroup) op).getGroupVars();
-        aggregators = ((OpGroup) op).getAggregators();
+        this.groupVars = ((OpGroup) op).getGroupVars();
+        this.aggregators = ((OpGroup) op).getAggregators();
     }
 
     @Override
     public void route(Mapping mapping) {
-		//System.out.println("check if grouped" +mapping);
-		/*ArrayList<Var> aggVars=new ArrayList<Var>();
-         for(ExprAggregator agg:aggregators)
-         aggVars.add(((ExprVar)agg.getAggregator().getExpr()).asVar());*/
-        ProjectMapping project = new ProjectMapping(context, mapping, groupVars.getVars());
+        ProjectMapping project = new ProjectMapping(
+                context, mapping, groupVars.getVars());
         MappingIterator itr = calc(mapping.from().searchBuff4Match(project));
-        //System.out.println("check filter" +project);
         while (itr.hasNext()) {
             Mapping _mapping = itr.next();
-            //System.out.println("rout next"+_mapping);
             _route(_mapping);
         }
         itr.close();
@@ -57,7 +50,8 @@ public class GroupRouter extends OpRouter1 {
     }
 
     private MappingIterator calc(MappingIterator itr) {
-        QueryIterGroup groupItrGroup = new QueryIterGroup(new QueryIterOnMappingIter(context, itr),
+        QueryIterGroup groupItrGroup = new QueryIterGroup(
+                new QueryIterOnMappingIter(context, itr),
                 groupVars, aggregators, context.getARQExCtx());
         return new MappingIterOnQueryIter(context, groupItrGroup);
     }
@@ -70,6 +64,11 @@ public class GroupRouter extends OpRouter1 {
     @Override
     public void visit(RouterVisitor rv) {
         rv.visit(this);
-        this.subRouter.visit(rv);
+        sub().visit(rv);
+    }
+
+    public void destroy() {
+        aggregators.clear();
+        context.policy().removeRouter(sub(), this);
     }
 }

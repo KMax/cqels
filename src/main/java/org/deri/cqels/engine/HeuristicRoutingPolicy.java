@@ -120,9 +120,11 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
         /* create router for window operators */
         ArrayList<IndexedTripleRouter> windows = new ArrayList<IndexedTripleRouter>();
         for (OpStream op : streamOps) {
-            IndexedTripleRouter router = new IndexedTripleRouter(context, op);
+            
             Quad quad = new Quad(op.getGraphNode(), op.getBasicPattern().get(0));
             EPStatement stmt = context.engine().addWindow(quad, ".win:length(1)");
+            IndexedTripleRouter router = new IndexedTripleRouter(
+                    context, stmt, op);
             stmt.setSubscriber(router);
             windows.add(router);
         }
@@ -223,6 +225,11 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
     public OpRouter addRouter(OpRouter from, OpRouter newRouter) {
         next.put(from.getId(), newRouter);
         return newRouter;
+    }
+    
+    @Override
+    public void removeRouter(OpRouter from, OpRouter to) {
+        next.remove(from.getId(), to);
     }
 
     /**

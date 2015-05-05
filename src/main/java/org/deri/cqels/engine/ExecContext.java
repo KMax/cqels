@@ -11,7 +11,6 @@ import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.tdb.base.file.FileFactory;
 import com.hp.hpl.jena.tdb.base.file.FileSet;
 import com.hp.hpl.jena.tdb.base.file.Location;
-import com.hp.hpl.jena.tdb.index.IndexBuilder;
 import com.hp.hpl.jena.tdb.index.IndexFactory;
 import com.hp.hpl.jena.tdb.solver.OpExecutorTDB1;
 import com.hp.hpl.jena.tdb.store.DatasetGraphTDB;
@@ -33,11 +32,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.deri.cqels.lang.cqels.ParserCQELS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class implements CQELS execution context
  *
- * @author	Danh Le Phuoc
+ * @author Danh Le Phuoc
  * @author Chan Le Van
  * @organization DERI Galway, NUIG, Ireland www.deri.ie
  * @email danh.lephuoc@deri.org
@@ -45,6 +46,8 @@ import org.deri.cqels.lang.cqels.ParserCQELS;
  */
 public class ExecContext {
 
+    private static final Logger logger = LoggerFactory.getLogger(
+            ExecContext.class);
     CQELSEngine engine;
     RoutingPolicy policy;
     Properties config;
@@ -353,6 +356,76 @@ public class ExecContext {
         ParserCQELS parser = new ParserCQELS();
         parser.parse(query, queryStr);
         return this.policy.registerSelectQuery(query);
+    }
+    
+    public void unregisterSelect(ContinuousSelect cs) {
+        cs.visit(new RouterVisitor() {
+
+            @Override
+            public void visit(JoinRouter router) {
+                logger.debug("Destroyied a JoinRouter");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(IndexedTripleRouter router) {
+                logger.debug("Destroyied a IndexedTripleRouter");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(ProjectRouter router) {
+                logger.debug("Destroyied a ProjectRouter");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(ThroughRouter router) {
+                logger.debug("Destroyied a ThroughRouter");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(BDBGraphPatternRouter router) {
+                logger.debug("Destroyied a BDBGraphPatternRouter");
+                //TODO: call reouter.destroy();
+            }
+
+            @Override
+            public void visit(ExtendRouter router) {
+                logger.debug("Destroyied a ExtendRouter");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(FilterExprRouter router) {
+                logger.debug("Destroyied a FilterExprRouter");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(ContinuousConstruct router) {
+                logger.debug("Destroyied a ContinuousConstruct");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(ContinuousSelect router) {
+                logger.debug("Destroyied a ContinuousSelect");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(GroupRouter router) {
+                logger.debug("Destroyied a GroupRouter");
+                router.destroy();
+            }
+
+            @Override
+            public void visit(OpRouter router) {
+                logger.debug("Destroyied a OpRouter");
+            }
+        });
     }
 
     /**

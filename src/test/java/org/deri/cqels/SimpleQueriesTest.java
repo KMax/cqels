@@ -6,27 +6,25 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
-import com.hp.hpl.jena.sparql.core.Var;
 import static com.jayway.awaitility.Awaitility.*;
 import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 import org.deri.cqels.data.Mapping;
-import org.deri.cqels.engine.ConstructListener;
 import org.deri.cqels.engine.ContinuousConstruct;
-import org.deri.cqels.engine.ContinuousListener;
 import org.deri.cqels.engine.ContinuousSelect;
 import org.deri.cqels.engine.ExecContext;
 import org.deri.cqels.engine.RDFStream;
+import org.deri.cqels.helpers.AssertListeners.ConstructAssertListener;
+import org.deri.cqels.helpers.AssertListeners.SelectAssertListener;
+import org.deri.cqels.helpers.DefaultRDFStream;
+import org.deri.cqels.helpers.Helpers;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.deri.cqels.helpers.AssertListeners.*;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -64,7 +62,7 @@ public class SimpleQueriesTest {
                 Node.createLiteral("123")));
 
         List<Mapping> mappings = await().until(listener, hasSize(1));
-        List<Node> nodes = toNodeList(mappings.get(0));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
         assertEquals("http://example.org/resource/1", nodes.get(0).getURI());
         assertEquals("http://example.org/ontology#hasValue",
                 nodes.get(1).getURI());
@@ -92,7 +90,7 @@ public class SimpleQueriesTest {
                 Node.createLiteral("123")));
 
         List<Mapping> mappings = await().until(listener, hasSize(1));
-        List<Node> nodes = toNodeList(mappings.get(0));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
         System.out.println(Arrays.toString(nodes.toArray()));
         assertEquals("http://example.org/resource/1", nodes.get(0).getURI());
         assertEquals("http://example.org/ontology#hasValue",
@@ -122,7 +120,7 @@ public class SimpleQueriesTest {
                 Node.createLiteral("123")));
 
         List<Mapping> mappings = await().until(listener, hasSize(1));
-        List<Node> nodes = toNodeList(mappings.get(0));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
         assertEquals(3, nodes.size());
         assertEquals("http://example.org/resource/1", nodes.get(0).getURI());
         assertEquals("http://example.org/ontology#hasValue",
@@ -159,13 +157,13 @@ public class SimpleQueriesTest {
 
         List<Mapping> mappings = await().until(listener, hasSize(2));
 
-        List<Node> nodes = toNodeList(mappings.get(0));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
         assertEquals("http://example.org/resource/1", nodes.get(0).getURI());
         assertEquals("http://example.org/ontology#hasValue",
                 nodes.get(1).getURI());
         assertEquals("123", nodes.get(2).getLiteralValue());
 
-        nodes = toNodeList(mappings.get(1));
+        nodes = Helpers.toNodeList(context, mappings.get(1));
         assertEquals("http://example.org/resource/2", nodes.get(0).getURI());
         assertEquals("http://example.org/ontology#hasValue",
                 nodes.get(1).getURI());
@@ -223,7 +221,7 @@ public class SimpleQueriesTest {
                 Node.createLiteral("123")));
 
         List<Mapping> mappings = await().until(listener, hasSize(1));
-        List<Node> nodes = toNodeList(mappings.get(0));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
         assertEquals("http://example.org/resource/1", nodes.get(0).getURI());
         assertEquals("http://example.org/ontology#hasValue",
                 nodes.get(1).getURI());
@@ -315,34 +313,21 @@ public class SimpleQueriesTest {
 
         List<Mapping> mappings = await().until(listener, hasSize(6));
         for (Mapping m : mappings) {
-            List<Node> nodes = toNodeList(m);
+            List<Node> nodes = Helpers.toNodeList(context, m);
         }
         
-        List<Node> r_0 = toNodeList(mappings.get(0));
+        List<Node> r_0 = Helpers.toNodeList(context, mappings.get(0));
         assertEquals(3, r_0.get(0).getLiteralValue());
-        List<Node> r_1 = toNodeList(mappings.get(1));
+        List<Node> r_1 = Helpers.toNodeList(context, mappings.get(1));
         assertEquals(new BigDecimal(2.5), r_1.get(0).getLiteralValue());
-        List<Node> r_2 = toNodeList(mappings.get(2));
+        List<Node> r_2 = Helpers.toNodeList(context, mappings.get(2));
         assertEquals(2, r_2.get(0).getLiteralValue());
-        List<Node> r_3 = toNodeList(mappings.get(3));
+        List<Node> r_3 = Helpers.toNodeList(context, mappings.get(3));
         assertEquals(6, r_3.get(0).getLiteralValue());
-        List<Node> r_4 = toNodeList(mappings.get(4));
+        List<Node> r_4 = Helpers.toNodeList(context, mappings.get(4));
         assertEquals(new BigDecimal(5.5), r_4.get(0).getLiteralValue());
-        List<Node> r_5 = toNodeList(mappings.get(5));
+        List<Node> r_5 = Helpers.toNodeList(context, mappings.get(5));
         assertEquals(5, r_5.get(0).getLiteralValue());
-    }
-
-    private List<Node> toNodeList(Mapping mapping) {
-        List<Node> nodes = new ArrayList<Node>();
-        for (Iterator<Var> vars = mapping.vars(); vars.hasNext();) {
-            final long id = mapping.get(vars.next());
-            if (id > 0) {
-                nodes.add(context.engine().decode(id));
-            } else {
-                nodes.add(null);
-            }
-        }
-        return nodes;
     }
 
     private List<Triple> readTriples(final String path) {
@@ -357,65 +342,6 @@ public class SimpleQueriesTest {
         }
 
         return triples;
-    }
-
-    private class SelectAssertListener
-            implements ContinuousListener,
-            Callable<List<Mapping>> {
-
-        private final List<Mapping> mapping = Collections.synchronizedList(
-                new ArrayList<Mapping>());
-
-        @Override
-        public void update(Mapping mapping) {
-            this.mapping.add(mapping);
-        }
-
-        @Override
-        public List<Mapping> call() throws Exception {
-            return mapping;
-        }
-
-    }
-
-    private class ConstructAssertListener extends ConstructListener
-            implements Callable<List<Triple>> {
-
-        private final List<Triple> graph = Collections.synchronizedList(
-                new ArrayList<Triple>());
-
-        public ConstructAssertListener(ExecContext context, String streamUri) {
-            super(context, streamUri);
-        }
-
-        @Override
-        public void update(List<Triple> graph) {
-            this.graph.addAll(graph);
-        }
-
-        @Override
-        public List<Triple> call() throws Exception {
-            return graph;
-        }
-    }
-
-    private class DefaultRDFStream extends RDFStream {
-
-        public DefaultRDFStream(ExecContext context, String uri) {
-            super(context, uri);
-        }
-
-        public void stream(Model t) {
-            StmtIterator iter = t.listStatements();
-            while (iter.hasNext()) {
-                super.stream(iter.next().asTriple());
-            }
-        }
-
-        @Override
-        public void stop() {
-        }
-
     }
 
 }
