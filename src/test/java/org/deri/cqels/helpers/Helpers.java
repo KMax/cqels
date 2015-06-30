@@ -1,6 +1,7 @@
 package org.deri.cqels.helpers;
 
 import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.sparql.core.Var;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,6 +27,11 @@ public class Helpers {
     public static void print(ExecContext context, List<Mapping> mappings) {
         for(Mapping m : mappings) {
             System.out.println(toNodeList(context, m));
+        }
+    }
+    public static void print(List<Triple> graph){
+        for(Triple t : graph){
+            System.out.println(t);
         }
     }
     
