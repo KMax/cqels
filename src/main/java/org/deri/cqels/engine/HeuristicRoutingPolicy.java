@@ -256,7 +256,7 @@ public class HeuristicRoutingPolicy extends RoutingPolicyBase {
             ///TODO
             ContinuousSelect rootRouter = (ContinuousSelect) addRouter(qR,
                     new ContinuousSelect(context, query, qR));
-            rootRouter.visit(new TimerVisitor());
+            //rootRouter.visit(new TimerVisitor());
             return rootRouter;
         }
         return null;

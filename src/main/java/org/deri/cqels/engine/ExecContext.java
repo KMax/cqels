@@ -363,67 +363,55 @@ public class ExecContext {
 
             @Override
             public void visit(JoinRouter router) {
-                logger.debug("Destroyied a JoinRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(IndexedTripleRouter router) {
-                logger.debug("Destroyied a IndexedTripleRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(ProjectRouter router) {
-                logger.debug("Destroyied a ProjectRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(ThroughRouter router) {
-                logger.debug("Destroyied a ThroughRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(BDBGraphPatternRouter router) {
-                logger.debug("Destroyied a BDBGraphPatternRouter");
-                //TODO: call reouter.destroy();
             }
 
             @Override
             public void visit(ExtendRouter router) {
-                logger.debug("Destroyied a ExtendRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(FilterExprRouter router) {
-                logger.debug("Destroyied a FilterExprRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(ContinuousConstruct router) {
-                logger.debug("Destroyied a ContinuousConstruct");
                 router.destroy();
             }
 
             @Override
             public void visit(ContinuousSelect router) {
-                logger.debug("Destroyied a ContinuousSelect");
                 router.destroy();
             }
 
             @Override
             public void visit(GroupRouter router) {
-                logger.debug("Destroyied a GroupRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(OpRouter router) {
-                logger.debug("Destroyied a OpRouter");
             }
         });
     }
@@ -446,66 +434,55 @@ public class ExecContext {
 
             @Override
             public void visit(JoinRouter router) {
-                logger.debug("Destroyied a JoinRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(IndexedTripleRouter router) {
-                logger.debug("Destroyied a IndexedTripleRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(ProjectRouter router) {
-                logger.debug("Destroyied a ProjectRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(ThroughRouter router) {
-                logger.debug("Destroyied a ThroughRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(BDBGraphPatternRouter router) {
-                logger.debug("Destroyied a BDBGraphPatternRouter");
             }
 
             @Override
             public void visit(ExtendRouter router) {
-                logger.debug("Destroyied a ExtendRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(FilterExprRouter router) {
-                logger.debug("Destroyied a FilterExprRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(ContinuousConstruct router) {
-                logger.debug("Destroyied a ContinuousConstruct");
                 router.destroy();
             }
 
             @Override
             public void visit(ContinuousSelect router) {
-                logger.debug("Destroyied a ContinuousSelect");
                 router.destroy();
             }
 
             @Override
             public void visit(GroupRouter router) {
-                logger.debug("Destroyied a GroupRouter");
                 router.destroy();
             }
 
             @Override
             public void visit(OpRouter router) {
-                logger.debug("Destroyied a OpRouter");
             }
         });
     }
