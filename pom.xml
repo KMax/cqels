@@ -85,7 +85,17 @@
         </dependency>
     </dependencies>
     
-    <distributionManagement>
+    <repositories>
+        <repository>
+            <id>cqels</id>
+            <url>https://raw.github.com/KMax/cqels/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+    <distributionManagement>        
         <repository>
             <id>internal.repo</id>
             <name>Temporary Staging Repository</name>

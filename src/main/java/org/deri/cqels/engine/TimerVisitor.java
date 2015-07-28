@@ -51,7 +51,7 @@ public class TimerVisitor implements RouterVisitor{
 	}
 
 	public void visit(GroupRouter router) {
-		//System.out.println("Hello GroupRouter");
+		System.out.println("Hello GroupRouter");
 		
 	}
 
