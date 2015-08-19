@@ -1,5 +1,6 @@
 package org.deri.cqels.engine;
 
+import com.hp.hpl.jena.rdf.model.Model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import com.hp.hpl.jena.sparql.core.DatasetGraph;
 import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
+import com.hp.hpl.jena.sparql.sse.SSE;
 
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
@@ -26,6 +28,13 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.SecondaryConfig;
 import com.sleepycat.je.SecondaryDatabase;
 import com.sleepycat.je.SecondaryKeyCreator;
+import static com.sun.corba.se.impl.util.Utility.printStackTrace;
+import java.io.IOException;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.linkeddatafragments.model.LinkedDataFragmentGraph;
 /**
  * This class implements a router that its data mapping buffer is static
  * @author		Danh Le Phuoc
@@ -69,6 +78,16 @@ public class BDBGraphPatternRouter extends OpRouterBase {
 		init(ds);
 	}
 	
+    private boolean isLDFServer(String url){
+        return url.indexOf("sparql")+"sparql".length()!=url.length();               
+    }
+        
+    private String getServerPath(Op op){
+        String tmp, str = op.toString();
+        tmp = str.substring(str.indexOf("service <")+"service <".length(), str.indexOf(">", str.lastIndexOf("service <")));
+        return tmp;
+    }
+    
 	private void init(DatasetGraph ds) {
 		DatabaseConfig dbConfig = new DatabaseConfig();
 		dbConfig.setAllowCreate(true);
@@ -76,6 +95,16 @@ public class BDBGraphPatternRouter extends OpRouterBase {
 		//System.out.println(op);
 		//materialize the query result here;
 		QueryIterator itr = context.loadGraphPattern(op, ds);
+                if (op.toString().contains("service") && isLDFServer(getServerPath(op))) {
+                    String s = op.toString();
+                    int start = s.indexOf("(service");
+                    int end = s.indexOf('(', s.indexOf("service"));
+                    String str = s.substring(0, start) + s.substring(end, s.lastIndexOf(')')) + "\n";
+                    Op oop = SSE.parseOp(str);
+                    LinkedDataFragmentGraph ldfg = new LinkedDataFragmentGraph(getServerPath(op));
+                    Model model = ModelFactory.createModelForGraph(ldfg);
+                    itr = context.loadGraphPattern(oop, model);
+                }
 		if(itr.hasNext()) {
 			      //System.out.println("has Next");
 			Binding binding = itr.next();

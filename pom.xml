@@ -83,12 +83,25 @@
             <version>1.1.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.linkeddatafragments</groupId>
+            <artifactId>ldf-client</artifactId>
+            <version>0.1.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     
     <repositories>
         <repository>
             <id>cqels</id>
             <url>https://raw.github.com/KMax/cqels/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>ldf-client</id>
+            <url>https://raw.github.com/semiotproject/Client.Java/mvn-repo/</url>
             <snapshots>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>

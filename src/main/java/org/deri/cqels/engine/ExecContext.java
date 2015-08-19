@@ -2,6 +2,7 @@ package org.deri.cqels.engine;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.sparql.algebra.Algebra;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
@@ -300,6 +301,10 @@ public class ExecContext {
      */
     public QueryIterator loadGraphPattern(Op op, DatasetGraph ds) {
         return Algebra.exec(op, ds);
+    }
+    
+    public QueryIterator loadGraphPattern(Op op, Model model){
+        return Algebra.exec(op, model);
     }
 
     /**

@@ -68,6 +68,69 @@ public class SimpleQueriesTest {
                 nodes.get(1).getURI());
         assertEquals("123", nodes.get(2).getLiteralValue());
     }
+    
+    @Test
+    public void simpleRemoteTest() {
+        System.out.println("simpleRemoteTest");
+        final String rmtService = "http://rdf.myexperiment.org/sparql";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID_PREFIX);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+                + "SELECT ?x ?y ?z ?p WHERE {"
+                + "STREAM <" + STREAM_ID_PREFIX + "> [NOW] {?x ?y ?z}"
+                + "SERVICE <" + rmtService + "> { <http://rdf.myexperiment.org/ontologies/snarm/Policy> ?x ?p} "
+                + "}");        
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://www.w3.org/2000/01/rdf-schema#isDefinedBy"),
+                Node.createURI("http://example.org/ontology#hasValue"),
+                Node.createLiteral("123")));
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
+
+        Helpers.print(context, mappings);
+        assertEquals("http://www.w3.org/2000/01/rdf-schema#isDefinedBy", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("123", nodes.get(2).getLiteralValue());
+        assertEquals("http://rdf.myexperiment.org/ontologies/snarm/", nodes.get(3).getURI());
+    }
+
+    @Test
+    //@Ignore
+    public void simpleRemoteLDFTest() {
+        System.out.println("simpleRemoteLDFTest");
+        final String rmtService = "http://ldf.lodlaundromat.org/0c77296e83c678a8757669a19894bde6";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID_PREFIX);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+                + "PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>"
+                + "SELECT ?x ?y ?z ?p WHERE {"
+                + "STREAM <" + STREAM_ID_PREFIX + "> [NOW] {?x ?y ?z}"
+                + "SERVICE <" + rmtService + "> { <http://river.styx.org/ww/2010/12/cablegraph#04VATICAN3196> ?x ?p.} "
+                + "}");
+
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://purl.org/dc/terms/accessRights"),
+                Node.createURI("http://example.org/ontology#hasValue"),
+                Node.createLiteral("123")));
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
+
+        Helpers.print(context, mappings);
+        assertEquals("http://purl.org/dc/terms/accessRights", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("123", nodes.get(2).getLiteralValue());
+        assertEquals("http://river.styx.org/ww/2010/12/cablegraph#CONFIDENTIAL", nodes.get(3).getURI());
+    }
 
     @Test(timeout = 5000)
     public void simpleSelectWithBindConcatStrStr() {
