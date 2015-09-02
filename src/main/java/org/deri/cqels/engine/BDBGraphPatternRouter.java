@@ -1,17 +1,9 @@
 package org.deri.cqels.engine;
 
+import com.hp.hpl.jena.graph.Graph;
+import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-
-import org.deri.cqels.data.Mapping;
-import org.deri.cqels.engine.iterator.MappingIterCursorAll;
-import org.deri.cqels.engine.iterator.MappingIterCursorByKey;
-import org.deri.cqels.engine.iterator.MappingIterCursorByRangeKey;
-import org.deri.cqels.engine.iterator.MappingIterator;
-import org.deri.cqels.engine.iterator.NullMappingIter;
-
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.sparql.algebra.Op;
 import com.hp.hpl.jena.sparql.core.DatasetGraph;
@@ -19,7 +11,6 @@ import com.hp.hpl.jena.sparql.core.Var;
 import com.hp.hpl.jena.sparql.engine.QueryIterator;
 import com.hp.hpl.jena.sparql.engine.binding.Binding;
 import com.hp.hpl.jena.sparql.sse.SSE;
-
 import com.sleepycat.bind.tuple.TupleInput;
 import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.Database;
@@ -28,12 +19,20 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.SecondaryConfig;
 import com.sleepycat.je.SecondaryDatabase;
 import com.sleepycat.je.SecondaryKeyCreator;
-import static com.sun.corba.se.impl.util.Utility.printStackTrace;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.deri.cqels.data.Mapping;
+import org.deri.cqels.engine.iterator.MappingIterCursorAll;
+import org.deri.cqels.engine.iterator.MappingIterCursorByKey;
+import org.deri.cqels.engine.iterator.MappingIterCursorByRangeKey;
+import org.deri.cqels.engine.iterator.MappingIterator;
+import org.deri.cqels.engine.iterator.NullMappingIter;
 import org.linkeddatafragments.model.LinkedDataFragmentGraph;
 /**
  * This class implements a router that its data mapping buffer is static
@@ -78,8 +77,59 @@ public class BDBGraphPatternRouter extends OpRouterBase {
 		init(ds);
 	}
 	
-    private boolean isLDFServer(String url){
-        return url.indexOf("sparql")+"sparql".length()!=url.length();               
+    /**
+     * The function determines whether the remote url is TPF.
+     *
+     * @param url url adress of SPARQL endpoint or TriplePatternFragments server
+     * @see https://lists.w3.org/Archives/Public/public-hydra/2015Aug/0040.html
+     */
+    private boolean isTPFServer(String url) {
+        HttpClient client = new DefaultHttpClient();
+        HttpGet get = new HttpGet(url);
+        try {
+            get.setHeader("Accept", "text/turtle");
+            HttpResponse response = client.execute(get);
+            Model mod = ModelFactory.createDefaultModel();            
+            mod.read(response.getEntity().getContent(), null, "TURTLE");
+            Graph graph = mod.getGraph();
+            
+            Triple triple0 = new Triple(Node.ANY, 
+                    Node.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#Collection"));
+            Triple triple1 = new Triple(Node.ANY, 
+                    Node.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), 
+                    Node.createURI("http://rdfs.org/ns/void#Dataset"));
+            Triple triple2 = new Triple(Node.ANY, 
+                    Node.createURI("http://rdfs.org/ns/void#subset"), 
+                    Node.createURI(url));
+            Triple triple3 = new Triple(Node.ANY, 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#search"), 
+                    Node.createVariable("_:triplePattern"));
+            Triple triple4 = new Triple(Node.createVariable("_:triplePattern"), 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#mapping"), 
+                    Node.createVariable("_:subject"));
+            Triple triple5 = new Triple(Node.createVariable("_:triplePattern"), 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#mapping"), 
+                    Node.createVariable("_:predicate"));
+            Triple triple6 = new Triple(Node.createVariable("_:triplePattern"), 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#mapping"), 
+                    Node.createVariable("_:object"));
+            Triple triple7 = new Triple(Node.createVariable("_:subject"), 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#property"), 
+                    Node.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"));
+            Triple triple8 = new Triple(Node.createVariable("_:predicate"), 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#property"), 
+                    Node.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"));
+            Triple triple9 = new Triple(Node.createVariable("_:object"), 
+                    Node.createURI("http://www.w3.org/ns/hydra/core#property"), 
+                    Node.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#object"));
+            boolean isTPF = graph.contains(triple0) && graph.contains(triple1) && graph.contains(triple2) &&
+                    graph.contains(triple3) && graph.contains(triple4) && graph.contains(triple5) &&
+                    graph.contains(triple6) && graph.contains(triple7) && graph.contains(triple8) && graph.contains(triple9);
+            return isTPF;
+        } catch (IOException ex) {            
+        }
+        return false;
     }
         
     private String getServerPath(Op op){
@@ -95,7 +145,7 @@ public class BDBGraphPatternRouter extends OpRouterBase {
 		//System.out.println(op);
 		//materialize the query result here;
 		QueryIterator itr = context.loadGraphPattern(op, ds);
-                if (op.toString().contains("service") && isLDFServer(getServerPath(op))) {
+                if (op.toString().contains("service") && isTPFServer(getServerPath(op))) {
                     String s = op.toString();
                     int start = s.indexOf("(service");
                     int end = s.indexOf('(', s.indexOf("service"));

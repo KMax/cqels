@@ -10,17 +10,15 @@ import static com.jayway.awaitility.Awaitility.await;
 import com.jayway.awaitility.Duration;
 import java.io.File;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import org.deri.cqels.data.Mapping;
 import org.deri.cqels.engine.ContinuousConstruct;
 import org.deri.cqels.engine.ContinuousSelect;
 import org.deri.cqels.engine.ExecContext;
 import org.deri.cqels.engine.RDFStream;
+import org.deri.cqels.helpers.AssertListeners.ConstructAssertListener;
 import org.deri.cqels.helpers.AssertListeners.SelectAssertListener;
 import org.deri.cqels.helpers.DefaultRDFStream;
-import static org.hamcrest.Matchers.hasSize;
-import static org.deri.cqels.helpers.AssertListeners.*;
 import org.deri.cqels.helpers.Helpers;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -84,6 +82,54 @@ public class UnregisterQueryTest {
         Helpers.print(context, mappings);
     }
 
+    
+    @Test
+    public void unregisterRemoteQuery() throws InterruptedException {
+        System.out.println("unregisterRemoteQueryTest");
+        System.out.println("remoteTPFTesttoDbpedia");
+        final String rmtService = "http://fragments.dbpedia.org/2014/en";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID_PREFIX);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+                + "PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>"
+                + "SELECT ?x ?y ?z ?p WHERE {"
+                + "STREAM <" + STREAM_ID_PREFIX + "> [NOW] {?x ?y ?z}"
+                + "SERVICE <" + rmtService + "> { <http://dbpedia.org/resource/11_Birthdays> ?x ?p.} "
+                + "}");
+
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://dbpedia.org/ontology/author"),
+                Node.createURI("http://example.org/ontology#hasValue"),
+                Node.createLiteral("1")));
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
+
+        Helpers.print(context, mappings);
+        assertEquals("http://dbpedia.org/ontology/author", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("1", nodes.get(2).getLiteralValue());
+        assertEquals("http://dbpedia.org/resource/Wendy_Mass", nodes.get(3).getURI());
+
+        context.unregisterSelect(query);
+
+        stream.stream(new Triple(
+                ResourceFactory.createResource("http://dbpedia.org/ontology/author").asNode(),
+                ResourceFactory.createProperty("http://example.org/ontology#hasValue").asNode(),
+                ResourceFactory.createPlainLiteral("789").asNode()));
+
+        mappings = await()
+                .timeout(Duration.TWO_HUNDRED_MILLISECONDS)
+                .until(listener, hasSize(1));
+        nodes = Helpers.toNodeList(context, mappings.get(0));
+        assertTrue(nodes.isEmpty());
+        Helpers.print(context, mappings);
+    }
+    
     @Test
     public void unregisterConstruct() throws InterruptedException {
         System.out.println("simpleUnregisterConstructTest");
