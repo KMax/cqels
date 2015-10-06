@@ -6,7 +6,7 @@ import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Statement;
-import static com.jayway.awaitility.Awaitility.*;
+import static com.jayway.awaitility.Awaitility.await;
 import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -22,9 +22,9 @@ import org.deri.cqels.helpers.AssertListeners.ConstructAssertListener;
 import org.deri.cqels.helpers.AssertListeners.SelectAssertListener;
 import org.deri.cqels.helpers.DefaultRDFStream;
 import org.deri.cqels.helpers.Helpers;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.deri.cqels.helpers.AssertListeners.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -67,6 +67,131 @@ public class SimpleQueriesTest {
         assertEquals("http://example.org/ontology#hasValue",
                 nodes.get(1).getURI());
         assertEquals("123", nodes.get(2).getLiteralValue());
+    }
+    
+    @Test
+    public void simpleRemoteTest() {
+        System.out.println("simpleRemoteTest");
+        final String rmtService = "http://rdf.myexperiment.org/sparql";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID_PREFIX);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+                + "SELECT ?x ?y ?z ?p WHERE {"
+                + "STREAM <" + STREAM_ID_PREFIX + "> [NOW] {?x ?y ?z}"
+                + "SERVICE <" + rmtService + "> { <http://rdf.myexperiment.org/ontologies/snarm/Policy> ?x ?p} "
+                + "}");        
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://www.w3.org/2000/01/rdf-schema#subClassOf"),
+                Node.createURI("http://example.org/ontology#hasValue"),
+                Node.createLiteral("123")));
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
+
+        Helpers.print(context, mappings);
+        assertEquals("http://www.w3.org/2000/01/rdf-schema#subClassOf", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("123", nodes.get(2).getLiteralValue());
+        assertEquals("http://purl.org/dc/terms/RightsStatement", nodes.get(3).getURI());
+    }
+
+    @Test
+    public void remoteTestToDbpedia(){
+        System.out.println("remoteTestToDbpedia");
+        final String rmtService = "http://dbpedia.org/sparql";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID_PREFIX);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+                + "PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>"
+                + "SELECT ?x ?y ?z ?p WHERE {"
+                + "STREAM <" + STREAM_ID_PREFIX + "> [NOW] {?x ?y ?z}"
+                + "SERVICE <" + rmtService + "> { <http://dbpedia.org/resource/Donald_Duck> ?x ?p.} "
+                + "}");
+
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://dbpedia.org/property/species"),
+                Node.createURI("http://example.org/ontology#hasNephewsValue"),
+                Node.createLiteral("3")));
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
+
+        Helpers.print(context, mappings);
+        assertEquals("http://dbpedia.org/property/species", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasNephewsValue",
+                nodes.get(1).getURI());
+        assertEquals("3", nodes.get(2).getLiteralValue());
+        assertEquals("http://dbpedia.org/resource/American_Pekin_duck", nodes.get(3).getURI());
+    }
+    @Test
+    //@Ignore
+    public void simpleRemoteTPFTest() {
+        System.out.println("simpleRemoteLDFTest");
+        final String rmtService = "http://ldf.lodlaundromat.org/0c77296e83c678a8757669a19894bde6";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID_PREFIX);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+                + "PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>"
+                + "SELECT ?x ?y ?z ?p WHERE {"
+                + "STREAM <" + STREAM_ID_PREFIX + "> [NOW] {?x ?y ?z}"
+                + "SERVICE <" + rmtService + "> { <http://river.styx.org/ww/2010/12/cablegraph#04VATICAN3196> ?x ?p.} "
+                + "}");
+
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://purl.org/dc/terms/accessRights"),
+                Node.createURI("http://example.org/ontology#hasValue"),
+                Node.createLiteral("123")));
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
+
+        Helpers.print(context, mappings);
+        assertEquals("http://purl.org/dc/terms/accessRights", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("123", nodes.get(2).getLiteralValue());
+        assertEquals("http://river.styx.org/ww/2010/12/cablegraph#CONFIDENTIAL", nodes.get(3).getURI());
+    }
+    @Test
+    public void remoteTPFTesttoDbpedia(){
+        System.out.println("remoteTPFTesttoDbpedia");
+        final String rmtService = "http://fragments.dbpedia.org/2014/en";
+        RDFStream stream = new DefaultRDFStream(context, STREAM_ID_PREFIX);
+
+        ContinuousSelect query = context.registerSelect(""
+                + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+                + "PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>"
+                + "SELECT ?x ?y ?z ?p WHERE {"
+                + "STREAM <" + STREAM_ID_PREFIX + "> [NOW] {?x ?y ?z}"
+                + "SERVICE <" + rmtService + "> { <http://dbpedia.org/resource/11_Birthdays> ?x ?p.} "
+                + "}");
+
+        SelectAssertListener listener = new SelectAssertListener();
+        query.register(listener);
+
+        stream.stream(new Triple(
+                Node.createURI("http://dbpedia.org/ontology/author"),
+                Node.createURI("http://example.org/ontology#hasValue"),
+                Node.createLiteral("1")));
+        List<Mapping> mappings = await().until(listener, hasSize(1));
+        List<Node> nodes = Helpers.toNodeList(context, mappings.get(0));
+
+        Helpers.print(context, mappings);
+        assertEquals("http://dbpedia.org/ontology/author", nodes.get(0).getURI());
+        assertEquals("http://example.org/ontology#hasValue",
+                nodes.get(1).getURI());
+        assertEquals("1", nodes.get(2).getLiteralValue());
+        assertEquals("http://dbpedia.org/resource/Wendy_Mass", nodes.get(3).getURI());
     }
 
     @Test(timeout = 5000)
